@@ -71,17 +71,17 @@
   <!-- Main -->
   <main class="main">
     <div class="topbar">
-      <div>
+      <div class="topbar-breadcrumb" aria-label="Breadcrumb">
         <span class="topbar-label">Workspace</span>
-        <span class="topbar-divider">/</span>
-        <span id="breadcrumb-current">Dashboard</span>
+        <span class="topbar-divider" aria-hidden="true">/</span>
+        <strong id="breadcrumb-current">Dashboard</strong>
       </div>
       <div class="topbar-actions">
         <button class="icon-button" id="refresh-dashboard" type="button" title="Refresh current view" aria-label="Refresh current view">↻</button>
         <div class="user-profile">
           <span class="user-avatar" id="user-avatar" aria-hidden="true">SS</span>
           <span class="user-profile-copy"><strong id="current-staff-name">Staff member</strong><small id="current-department-name">Department</small></span>
-          <button class="logout-button" id="logout-button" type="button">Log out</button>
+          <button class="logout-button" id="logout-button" type="button"><span>Log out</span><span aria-hidden="true">↗</span></button>
         </div>
       </div>
     </div>
