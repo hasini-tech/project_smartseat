@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SmartSeat — Examination Hall Allocation</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<section class="auth-shell" id="auth-shell" hidden>
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="brand-mark">SS</span>
+      <span class="brand-name">SmartSeat</span>
+    </div>
+    <span class="eyebrow">Staff workspace</span>
+    <h1 id="auth-title">Welcome back</h1>
+    <p id="auth-subtitle">Sign in to manage your department's examination seating.</p>
+    <div class="auth-message" id="auth-message" role="alert" hidden></div>
+
+    <form id="login-form" class="auth-form">
+      <label>Organization / workspace<input type="text" id="login-organization" autocomplete="organization" required placeholder="e.g. ABC College" /></label>
+      <label>Staff name<input type="text" id="login-staff-name" autocomplete="username" required placeholder="Enter your staff name" /></label>
+      <label>Department name<input type="text" id="login-department" required placeholder="e.g. Computer Science" /></label>
+      <label>Password<input type="password" id="login-password" autocomplete="current-password" required placeholder="Enter your password" /></label>
+      <button class="btn primary auth-submit" type="submit">Sign in</button>
+    </form>
+
+    <form id="register-form" class="auth-form" hidden>
+      <label>Organization / workspace<input type="text" id="register-organization" autocomplete="organization" required placeholder="e.g. ABC College" /></label>
+      <label>Staff name<input type="text" id="register-staff-name" autocomplete="name" required placeholder="Enter your full name" /></label>
+      <label>Department name<input type="text" id="register-department" required placeholder="e.g. Computer Science" /></label>
+      <label>Password<input type="password" id="register-password" autocomplete="new-password" required placeholder="At least 8 characters" minlength="8" /></label>
+      <label>Confirm password<input type="password" id="register-confirm-password" autocomplete="new-password" required placeholder="Re-enter your password" minlength="8" /></label>
+      <button class="btn primary auth-submit" type="submit">Create staff account</button>
+    </form>
+
+    <p class="auth-switch" id="auth-switch-login">New to SmartSeat? <button type="button" data-auth-mode="register">Create an account</button></p>
+    <p class="auth-switch" id="auth-switch-register" hidden>Already registered? <button type="button" data-auth-mode="login">Sign in instead</button></p>
+  </div>
+</section>
+
+<div class="app" id="app-shell" hidden>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">SS</span>
+      <span class="brand-copy">
+        <span class="brand-name">SmartSeat</span>
+        <span class="brand-subtitle">Exam allocation</span>
+      </span>
+    </div>
+    <div class="sidebar-label">Workspace</div>
+    <nav class="nav">
+      <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span><span>Dashboard</span></button>
+      <button class="nav-item" data-view="students"><span class="nav-icon">♙</span><span>Students</span></button>
+      <button class="nav-item" data-view="halls"><span class="nav-icon">▦</span><span>Halls</span></button>
+      <button class="nav-item" data-view="exam"><span class="nav-icon">▣</span><span>Exam setup</span></button>
+      <button class="nav-item" data-view="generate"><span class="nav-icon">✦</span><span>Generate seating</span></button>
+      <button class="nav-item" data-view="seating"><span class="nav-icon">▤</span><span>View seating</span></button>
+      <button class="nav-item" data-view="search"><span class="nav-icon">⌕</span><span>Search</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="status-dot"></span>
+      <span><strong>System ready</strong><small>All services connected</small></span>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <span class="topbar-label">Workspace</span>
+        <span class="topbar-divider">/</span>
+        <span id="breadcrumb-current">Dashboard</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-button" id="refresh-dashboard" type="button" title="Refresh current view" aria-label="Refresh current view">↻</button>
+        <div class="user-profile">
+          <span class="user-avatar" id="user-avatar" aria-hidden="true">SS</span>
+          <span class="user-profile-copy"><strong id="current-staff-name">Staff member</strong><small id="current-department-name">Department</small></span>
+          <button class="logout-button" id="logout-button" type="button">Log out</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <header class="view-head view-head-dashboard">
+        <div>
+          <span class="eyebrow">Overview</span>
+          <h1>Dashboard</h1>
+          <p id="dashboard-welcome">Keep track of students, halls and the latest seating allocation.</p>
+        </div>
+        <div class="view-actions">
+          <button class="btn secondary" type="button" data-view-target="students">+ Add student</button>
+          <button class="btn primary" type="button" data-view-target="exam">Create exam</button>
+        </div>
+      </header>
+
+      <div class="stat-row" id="stat-row"></div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="eyebrow">Capacity overview</span>
+            <h2>Hall utilization</h2>
+          </div>
+          <span class="status-badge" id="utilization-status">No plan yet</span>
+        </div>
+        <div id="hall-utilization" class="util-list">
+          <p class="muted">Generate a seating plan to see hall-by-hall fill rate.</p>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <div>
+          <span class="eyebrow">Quick actions</span>
+          <h2>What would you like to do?</h2>
+        </div>
+        <div class="quick-action-grid">
+          <button class="quick-action" type="button" data-view-target="students">
+            <span class="quick-action-icon green">♙</span>
+            <span><strong>Manage students</strong><small>Add or import a class list</small></span>
+            <span class="arrow">→</span>
+          </button>
+          <button class="quick-action" type="button" data-view-target="halls">
+            <span class="quick-action-icon blue">▦</span>
+            <span><strong>Set up halls</strong><small>Define capacity and layouts</small></span>
+            <span class="arrow">→</span>
+          </button>
+          <button class="quick-action" type="button" data-view-target="generate">
+            <span class="quick-action-icon gold">✦</span>
+            <span><strong>Generate seating</strong><small>Allocate students to halls</small></span>
+            <span class="arrow">→</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="dashboard-lower-grid">
+        <section class="workflow-card">
+          <div class="panel-head">
+            <div>
+              <span class="eyebrow">Setup progress</span>
+              <h2>Build your seating plan</h2>
+            </div>
+            <span class="progress-count" id="workflow-progress">0 / 4</span>
+          </div>
+          <div class="workflow-track" aria-hidden="true"><span id="workflow-progress-bar"></span></div>
+          <ol class="workflow-steps" id="workflow-steps">
+            <li class="workflow-step" data-step="students" data-view-target="students"><span class="step-number">1</span><span><strong>Add students</strong><small>Import your class list</small></span><span class="step-state">Next</span></li>
+            <li class="workflow-step" data-step="halls" data-view-target="halls"><span class="step-number">2</span><span><strong>Configure halls</strong><small>Set rows and capacity</small></span><span class="step-state">Next</span></li>
+            <li class="workflow-step" data-step="exam" data-view-target="exam"><span class="step-number">3</span><span><strong>Create an exam</strong><small>Choose date and halls</small></span><span class="step-state">Next</span></li>
+            <li class="workflow-step" data-step="seating" data-view-target="generate"><span class="step-number">4</span><span><strong>Generate seating</strong><small>Allocate every student</small></span><span class="step-state">Next</span></li>
+          </ol>
+        </section>
+
+        <section class="insight-card">
+          <div class="insight-orbit"><span>✦</span></div>
+          <span class="eyebrow">Smart planning</span>
+          <h2>Ready to create a balanced room?</h2>
+          <p>SmartSeat keeps classes apart and distributes students across your available halls.</p>
+          <button class="btn primary" type="button" data-view-target="generate">Start planning <span aria-hidden="true">→</span></button>
+        </section>
+      </div>
+    </section>
+
+    <!-- STUDENTS -->
+    <section class="view" id="view-students">
+      <header class="view-head">
+        <h1>Students</h1>
+        <p>Add students one at a time, or import a class list as CSV (columns: rollNo, name, class, dept).</p>
+      </header>
+
+      <div class="panel">
+        <div class="row-split">
+          <form id="student-form" class="inline-form">
+            <input type="text" id="s-rollNo" placeholder="Roll No (e.g. 23CSE001)" required />
+            <input type="text" id="s-name" placeholder="Name" required />
+            <input type="text" id="s-class" placeholder="Class (e.g. CSE-A)" required />
+            <input type="text" id="s-dept" placeholder="Dept (e.g. CSE)" required />
+            <button type="submit" class="btn primary">Add student</button>
+          </form>
+
+          <div class="import-box">
+            <label class="btn secondary" for="csv-file">Import CSV</label>
+            <input type="file" id="csv-file" accept=".csv" hidden />
+            <span id="import-status" class="muted small"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Student list</h2>
+          <span id="student-count" class="pill"></span>
+        </div>
+        <div class="table-wrap">
+          <table id="students-table">
+            <thead><tr><th>Roll No</th><th>Name</th><th>Class</th><th>Dept</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- HALLS -->
+    <section class="view" id="view-halls">
+      <header class="view-head">
+        <h1>Halls</h1>
+        <p>Enter each hall's bench layout — rows of benches and benches (columns) per row — capacity is calculated automatically.</p>
+      </header>
+
+      <div class="panel">
+        <form id="hall-form" class="inline-form">
+          <input type="text" id="h-name" placeholder="Hall name (e.g. Hall 101)" required />
+          <input type="number" id="h-rows" placeholder="Rows" min="1" required />
+          <input type="number" id="h-columns" placeholder="Benches per row" min="1" required />
+          <button type="submit" class="btn primary">Add hall</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Hall list</h2>
+          <span id="hall-total" class="pill"></span>
+        </div>
+        <div class="table-wrap">
+          <table id="halls-table">
+            <thead><tr><th>Hall</th><th>Rows</th><th>Benches/row</th><th>Capacity</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXAM SETUP -->
+    <section class="view" id="view-exam">
+      <header class="view-head">
+        <h1>Exam setup</h1>
+        <p>Create the exam, then choose which halls will be used for it.</p>
+      </header>
+
+      <div class="panel">
+        <form id="exam-form" class="grid-form">
+          <input type="text" id="e-name" placeholder="Exam name (e.g. Cycle Test - I)" required />
+          <input type="text" id="e-subject" placeholder="Subject" required />
+          <input type="date" id="e-date" required />
+          <input type="time" id="e-start" required />
+          <input type="time" id="e-end" required />
+          <input type="text" id="e-college" placeholder="College name" value="ABC COLLEGE" />
+          <button type="submit" class="btn primary">Create exam</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Exams</h2>
+        <div class="table-wrap">
+          <table id="exams-table">
+            <thead><tr><th>Exam</th><th>Subject</th><th>Date</th><th>Time</th><th>Halls</th><th>Status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel" id="assign-halls-panel" style="display:none">
+        <h2>Assign halls to <span id="assign-exam-name"></span></h2>
+        <div id="assign-halls-list" class="checkbox-list"></div>
+        <button class="btn primary" id="save-hall-assignment">Save hall assignment</button>
+      </div>
+    </section>
+
+    <!-- GENERATE -->
+    <section class="view" id="view-generate">
+      <header class="view-head">
+        <h1>Generate seating</h1>
+        <p>Pick an exam with halls assigned. The system distributes students so no two students of the same class sit next to each other.</p>
+      </header>
+
+      <div class="panel">
+        <label class="field-label" for="gen-exam-select">Exam</label>
+        <select id="gen-exam-select"></select>
+        <button class="btn primary" id="generate-btn" style="margin-top:14px">Generate seating plan</button>
+        <div id="generate-result" class="result-box"></div>
+      </div>
+    </section>
+
+    <!-- VIEW SEATING -->
+    <section class="view" id="view-seating">
+      <header class="view-head">
+        <h1>View seating</h1>
+        <p>Hall-wise seating arrangement for the selected exam.</p>
+      </header>
+
+      <div class="panel">
+        <label class="field-label" for="seat-exam-select">Exam</label>
+        <select id="seat-exam-select"></select>
+      </div>
+
+      <div id="seating-halls"></div>
+    </section>
+
+    <!-- SEARCH -->
+    <section class="view" id="view-search">
+      <header class="view-head">
+        <h1>Search student</h1>
+        <p>Find exactly where a student is seated.</p>
+      </header>
+
+      <div class="panel">
+        <label class="field-label" for="search-exam-select">Exam</label>
+        <select id="search-exam-select"></select>
+        <div class="search-row">
+          <input type="text" id="search-roll" placeholder="Enter roll number" />
+          <button class="btn primary" id="search-btn">Search</button>
+        </div>
+        <div id="search-result"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
